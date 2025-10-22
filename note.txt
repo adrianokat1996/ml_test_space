@@ -1,0 +1,22 @@
+Revised Experiment Plan
+Aggregate Coverage Data to Daily Frequency
+
+Transform raw coverage data into daily aggregates to ensure consistent time intervals for analysis.
+Feature Selection and Model Training
+
+Select relevant features from the dataset.
+Train a simple regression model using the selected features.
+Use 2024 Data as Training Set
+
+Restrict the training data to records from the year 2024 to capture recent patterns.
+Generate Predictions on Training Data
+
+Apply the trained model to the 2024 dataset to produce prediction outputs.
+Save both the input features and predicted values for further analysis.
+Merge Predictions with Event Data
+
+Integrate the prediction results with external event data (e.g., news, campaigns, disruptions) based on date alignment.
+Analyze Event Impact
+
+Investigate how specific events correlate with deviations in prediction accuracy or coverage trends.
+Identify patterns or anomalies that suggest causal relationships.
