@@ -1,0 +1,13 @@
+{
+  "csv": "/Users/katadriano/Documents/ml_test_space/filtered_df.csv",
+  "year": 2024,
+  "val_days": 28,
+  "k_mad": 3.0,
+  "active_location": "Chiu Chow - Pak Loh - GM",
+  "n_estimators": 300,
+  "random_state": 42,
+  "export_combined": true,
+  "export_multiloc_summary": true,
+  "out_dir": "/Users/katadriano/Documents/ml_test_space"
+}
+

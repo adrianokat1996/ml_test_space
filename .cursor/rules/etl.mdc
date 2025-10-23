@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+## 溝通與流程
+- 在採取任何動作前，先向使用者確認資訊。
+- 採用逐步開發（step-by-step）；每一步完成後，更新開發日誌。
+- 專案內部進度與技術細節記錄於 dev_log.md；README.md 面向使用者。
+- 所有回覆使用繁體中文。
+- but script code discription use english 
+
+## 專案結構與主流程
+- develope in notebook
