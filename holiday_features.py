@@ -113,6 +113,19 @@ def generate_holiday_features(
     df['isMacauHoliday'] = dates_date.map(lambda d: 1 if d in macau_set else 0).astype(int)
     df['isChinaHoliday'] = dates_date.map(lambda d: 1 if d in china_set else 0).astype(int)
 
+    # Extend holiday flags to weekends adjacent to holidays (連假邏輯)
+    china_flag = df['isChinaHoliday'].astype(bool)
+    macau_flag = df['isMacauHoliday'].astype(bool)
+    weekend_flag = df['isWeekend'].astype(bool)
+    china_weekend_adj = weekend_flag & (
+        china_flag.shift(1, fill_value=False) | china_flag.shift(-1, fill_value=False)
+    )
+    macau_weekend_adj = weekend_flag & (
+        macau_flag.shift(1, fill_value=False) | macau_flag.shift(-1, fill_value=False)
+    )
+    df['isChinaHoliday'] = (china_flag | china_weekend_adj).astype(int)
+    df['isMacauHoliday'] = (macau_flag | macau_weekend_adj).astype(int)
+
     # Consecutive counts (per holiday system)
     df = df.sort_values('CalendarDate').reset_index(drop=True)
     df['consecutiveChina'] = _consecutive_counts(df['isChinaHoliday'].values.astype(bool))
@@ -189,6 +202,19 @@ def generate_holiday_features_by_package(
     dates_date = df['CalendarDate'].dt.date
     df['isChinaHoliday'] = dates_date.map(lambda d: 1 if d in china_set else 0).astype(int)
     df['isMacauHoliday'] = dates_date.map(lambda d: 1 if d in macau_set else 0).astype(int)
+
+    # Extend holiday flags to weekends adjacent to holidays (連假邏輯)
+    china_flag = df['isChinaHoliday'].astype(bool)
+    macau_flag = df['isMacauHoliday'].astype(bool)
+    weekend_flag = df['isWeekend'].astype(bool)
+    china_weekend_adj = weekend_flag & (
+        china_flag.shift(1, fill_value=False) | china_flag.shift(-1, fill_value=False)
+    )
+    macau_weekend_adj = weekend_flag & (
+        macau_flag.shift(1, fill_value=False) | macau_flag.shift(-1, fill_value=False)
+    )
+    df['isChinaHoliday'] = (china_flag | china_weekend_adj).astype(int)
+    df['isMacauHoliday'] = (macau_flag | macau_weekend_adj).astype(int)
 
     df = df.sort_values('CalendarDate').reset_index(drop=True)
     df['consecutiveChina'] = _consecutive_counts(df['isChinaHoliday'].values.astype(bool))
