@@ -43,6 +43,14 @@ try:
 except Exception:
     SCIPY_AVAILABLE = False
 
+# Optional plotting imports
+try:
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    MPL_AVAILABLE = True
+except Exception:
+    MPL_AVAILABLE = False
+
 
 def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return math.sqrt(mean_squared_error(y_true, y_pred))
@@ -210,6 +218,76 @@ def load_config(config_path: Optional[str] = None) -> dict:
     cfg.setdefault('out_dir', '/Users/katadriano/Documents/ml_test_space')
 
     return cfg
+
+
+def plot_val_df(val_df: pd.DataFrame,
+                location: Optional[str] = None,
+                save_path: Optional[str] = None,
+                show: bool = False) -> None:
+    """Plot validation results from a val_df produced by analyze_single_location.
+
+    Expects columns: 'FT_CalendarDate','Actual','y_pred','residual','event_day','large_residual'.
+
+    Parameters
+    ----------
+    val_df : pd.DataFrame
+        Validation dataframe with predictions and residuals.
+    location : Optional[str]
+        Location name for plot title.
+    save_path : Optional[str]
+        If provided, saves the figure to this path.
+    show : bool
+        If True, calls plt.show(). Useful when running interactively.
+    """
+    if not MPL_AVAILABLE:
+        raise ImportError("matplotlib is required for plotting. Install with: pip install matplotlib")
+
+    required_cols = ['FT_CalendarDate','Actual','y_pred','residual']
+    missing = [c for c in required_cols if c not in val_df.columns]
+    if missing:
+        raise ValueError(f"val_df missing required columns: {missing}")
+
+    dfp = val_df.sort_values('FT_CalendarDate').copy()
+    title_loc = location or (str(dfp.get('Location').iloc[0]) if 'Location' in dfp.columns and not dfp.empty else '')
+
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 7), sharex=True)
+
+    # Top: Actual vs Predicted
+    axes[0].plot(dfp['FT_CalendarDate'], dfp['Actual'], label='Actual', color='tab:blue')
+    axes[0].plot(dfp['FT_CalendarDate'], dfp['y_pred'], label='Predicted', color='tab:orange', alpha=0.9)
+    axes[0].set_ylabel('Value')
+    axes[0].set_title(f"Validation — Actual vs Predicted{(' — ' + title_loc) if title_loc else ''}")
+    axes[0].legend()
+
+    # Mark event days on top plot (as vertical markers at bottom of axis)
+    if 'event_day' in dfp.columns:
+        evt_dates = dfp.loc[dfp['event_day'] == 1, 'FT_CalendarDate']
+        axes[0].scatter(evt_dates, [axes[0].get_ylim()[0]] * len(evt_dates), marker='|', s=200, color='red', label='Event day')
+
+    # Bottom: Residuals, highlight large residuals
+    axes[1].plot(dfp['FT_CalendarDate'], dfp['residual'], label='Residual', color='tab:green')
+    axes[1].axhline(0, color='black', linewidth=1)
+    if 'large_residual' in dfp.columns:
+        lr = dfp['large_residual'] == True
+        axes[1].scatter(dfp.loc[lr, 'FT_CalendarDate'], dfp.loc[lr, 'residual'], color='orange', label='Large residual')
+    if 'event_day' in dfp.columns:
+        evt_dates = dfp.loc[dfp['event_day'] == 1, 'FT_CalendarDate']
+        axes[1].scatter(evt_dates, [0] * len(evt_dates), marker='|', s=200, color='red', label='Event day')
+    axes[1].set_ylabel('Residual')
+    axes[1].set_xlabel('Date')
+    axes[1].legend()
+
+    # Date formatting
+    axes[1].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    fig.autofmt_xdate(rotation=45)
+    fig.tight_layout()
+
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        fig.savefig(save_path, dpi=150, bbox_inches='tight')
+    if show:
+        plt.show()
+    plt.close(fig)
 
 
 def analyze_single_location(df_all: pd.DataFrame,
