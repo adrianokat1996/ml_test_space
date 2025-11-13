@@ -20,3 +20,15 @@ Analyze Event Impact
 
 Investigate how specific events correlate with deviations in prediction accuracy or coverage trends.
 Identify patterns or anomalies that suggest causal relationships.
+
+df = df.withColumn("days_ago", F.datediff(F.lit(F.current_date()), F.col("date")))
+df = df.withColumn("weight", F.exp(-F.col("days_ago") / 180)) # 半年衰减
+assembler = VectorAssembler(inputCols=["feature1"], outputCol="features")
+df_assembled = assembler.transform(df)# 训练带权重的 
+XGBoostxgb = XGBoostRegressor(    
+featuresCol="features",    
+labelCol="label", 
+weightCol="weight",  # 关键参数：指定权重列   
+ maxDepth=6,   
+ numRound=100)
+model = xgb.fit(df_assembled)
